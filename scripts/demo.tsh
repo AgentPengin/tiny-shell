@@ -1,0 +1,15 @@
+# myShell demo script
+help
+date
+time
+pwd
+dir .
+path
+which cmd
+cmd /C echo Hello from an external command
+scripts\hello.bat
+ping -n 2 127.0.0.1 > nul &
+list
+sleep 2500
+list
+reap
