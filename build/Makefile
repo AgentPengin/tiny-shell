@@ -173,6 +173,43 @@ myShell/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\myShell.dir\build.make CMakeFiles/myShell.dir/build
 .PHONY : myShell/fast
 
+#=============================================================================
+# Target rules for targets named ascii_worker
+
+# Build rule for target.
+ascii_worker: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ascii_worker
+.PHONY : ascii_worker
+
+# fast build rule for target.
+ascii_worker/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/build
+.PHONY : ascii_worker/fast
+
+src/ascii_worker.obj: src/ascii_worker.cpp.obj
+.PHONY : src/ascii_worker.obj
+
+# target to build an object file
+src/ascii_worker.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/src/ascii_worker.cpp.obj
+.PHONY : src/ascii_worker.cpp.obj
+
+src/ascii_worker.i: src/ascii_worker.cpp.i
+.PHONY : src/ascii_worker.i
+
+# target to preprocess a source file
+src/ascii_worker.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/src/ascii_worker.cpp.i
+.PHONY : src/ascii_worker.cpp.i
+
+src/ascii_worker.s: src/ascii_worker.cpp.s
+.PHONY : src/ascii_worker.s
+
+# target to generate assembly for a file
+src/ascii_worker.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/src/ascii_worker.cpp.s
+.PHONY : src/ascii_worker.cpp.s
+
 src/main.obj: src/main.cpp.obj
 .PHONY : src/main.obj
 
@@ -209,7 +246,11 @@ help:
 	@echo ... install/strip
 	@echo ... list_install_components
 	@echo ... rebuild_cache
+	@echo ... ascii_worker
 	@echo ... myShell
+	@echo ... src/ascii_worker.obj
+	@echo ... src/ascii_worker.i
+	@echo ... src/ascii_worker.s
 	@echo ... src/main.obj
 	@echo ... src/main.i
 	@echo ... src/main.s

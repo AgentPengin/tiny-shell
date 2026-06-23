@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -54,6 +55,8 @@ ForegroundProcess g_foreground;
 std::vector<BackgroundJob> g_jobs;
 std::vector<std::string> g_history;
 bool g_shouldExit = false;
+
+std::string getEnvironmentValue(const std::string &name);
 
 std::string trim(const std::string &text)
 {
@@ -111,6 +114,49 @@ std::vector<std::string> splitSemicolonList(const std::string &text)
     }
 
     return parts;
+}
+
+std::vector<std::string> getPathExtensions()
+{
+    std::vector<std::string> extensions{""};
+    std::vector<std::string> fromEnvironment = splitSemicolonList(getEnvironmentValue("PATHEXT"));
+
+    if (fromEnvironment.empty())
+    {
+        fromEnvironment = {".COM", ".EXE", ".BAT", ".CMD"};
+    }
+
+    for (const std::string &extension : fromEnvironment)
+    {
+        extensions.push_back(extension);
+    }
+
+    return extensions;
+}
+
+bool parseUnsignedLongStrict(const std::string &text, unsigned long &value)
+{
+    if (text.empty() || !std::all_of(text.begin(), text.end(), [](unsigned char ch) {
+            return std::isdigit(ch) != 0;
+        }))
+    {
+        return false;
+    }
+
+    try
+    {
+        unsigned long long parsed = std::stoull(text);
+        if (parsed > std::numeric_limits<unsigned long>::max())
+        {
+            return false;
+        }
+        value = static_cast<unsigned long>(parsed);
+        return true;
+    }
+    catch (const std::exception &)
+    {
+        return false;
+    }
 }
 
 std::vector<std::string> tokenize(const std::string &line)
@@ -262,6 +308,7 @@ void refreshBackgroundJobs()
         {
             job.status = JobStatus::Exited;
             job.exitCode = exitCode;
+            closeJobHandles(job);
         }
     }
 
@@ -287,29 +334,41 @@ bool parsePid(const std::vector<std::string> &args, DWORD &pid)
         return false;
     }
 
-    try
+    unsigned long parsed = 0;
+    if (parseUnsignedLongStrict(args[0], parsed))
     {
-        unsigned long parsed = std::stoul(args[0]);
         pid = static_cast<DWORD>(parsed);
         return true;
     }
-    catch (const std::exception &)
-    {
-        return false;
-    }
+
+    return false;
 }
 
 std::string findExecutable(const std::string &command)
 {
     fs::path commandPath(command);
     std::error_code error;
+    std::vector<std::string> extensions = getPathExtensions();
 
     if (commandPath.has_parent_path())
     {
-        fs::path absolutePath = fs::absolute(commandPath, error);
-        if (!error && fs::exists(absolutePath, error))
+        for (const std::string &extension : extensions)
         {
-            return absolutePath.string();
+            fs::path withExtension = commandPath;
+            if (!withExtension.has_extension() && !extension.empty())
+            {
+                withExtension += extension;
+            }
+
+            if (fs::exists(withExtension, error) && !fs::is_directory(withExtension, error))
+            {
+                return fs::absolute(withExtension, error).string();
+            }
+
+            if (commandPath.has_extension())
+            {
+                break;
+            }
         }
         return "";
     }
@@ -322,12 +381,6 @@ std::string findExecutable(const std::string &command)
     for (const std::string &folder : splitSemicolonList(pathValue))
     {
         candidates.push_back((fs::path(folder) / command).string());
-    }
-
-    std::vector<std::string> extensions{""};
-    for (const std::string &extension : splitSemicolonList(getEnvironmentValue("PATHEXT")))
-    {
-        extensions.push_back(extension);
     }
 
     for (const std::string &candidate : candidates)
@@ -395,6 +448,27 @@ bool containsCmdMetaCharacter(const std::string &raw)
     return false;
 }
 
+bool containsOutputRedirection(const std::string &raw)
+{
+    bool inQuotes = false;
+
+    for (char ch : raw)
+    {
+        if (ch == '"')
+        {
+            inQuotes = !inQuotes;
+            continue;
+        }
+
+        if (!inQuotes && ch == '>')
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 std::string buildCommandLine(const ParsedCommand &command, bool forceCmd)
 {
     if (forceCmd || isBatchCommand(command) || containsCmdMetaCharacter(command.raw))
@@ -430,18 +504,21 @@ BOOL WINAPI consoleControlHandler(DWORD controlType)
         return FALSE;
     }
 
-    HANDLE foregroundHandle = nullptr;
     DWORD foregroundPid = 0;
+    bool terminated = false;
 
     EnterCriticalSection(&g_stateLock);
-    foregroundHandle = g_foreground.handle;
-    foregroundPid = g_foreground.pid;
+    if (g_foreground.handle != nullptr)
+    {
+        foregroundPid = g_foreground.pid;
+        terminated = TerminateProcess(g_foreground.handle, CONTROL_C_EXIT) != FALSE;
+    }
     LeaveCriticalSection(&g_stateLock);
 
-    if (foregroundHandle != nullptr)
+    if (foregroundPid != 0)
     {
-        TerminateProcess(foregroundHandle, CONTROL_C_EXIT);
-        std::cout << "\n[Ctrl+C] Foreground process " << foregroundPid << " was terminated.\n";
+        std::cout << "\n[Ctrl+C] Foreground process " << foregroundPid
+                  << (terminated ? " was terminated.\n" : " could not be terminated.\n");
         return TRUE;
     }
 
@@ -460,6 +537,10 @@ bool createChildProcess(const ParsedCommand &command, bool forceCmd = false)
 
     PROCESS_INFORMATION processInfo{};
     DWORD creationFlags = CREATE_NEW_PROCESS_GROUP;
+    if (command.background)
+    {
+        creationFlags |= containsOutputRedirection(command.raw) ? CREATE_NO_WINDOW : CREATE_NEW_CONSOLE;
+    }
 
     std::cout.flush();
 
@@ -628,30 +709,36 @@ void killProcessCommand(const std::vector<std::string> &args)
         return;
     }
 
-    HANDLE processHandle = OpenProcess(PROCESS_TERMINATE | PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-    if (processHandle == nullptr)
-    {
-        std::cout << "Cannot open PID " << pid << ". Windows error: " << GetLastError() << "\n";
-        return;
-    }
-
-    if (!TerminateProcess(processHandle, 1))
-    {
-        std::cout << "Cannot terminate PID " << pid << ". Windows error: " << GetLastError() << "\n";
-        CloseHandle(processHandle);
-        return;
-    }
-
-    WaitForSingleObject(processHandle, 1000);
-    CloseHandle(processHandle);
+    refreshBackgroundJobs();
 
     EnterCriticalSection(&g_stateLock);
     BackgroundJob *job = findJobByPid(pid);
-    if (job != nullptr)
+    if (job == nullptr)
     {
-        job->status = JobStatus::Exited;
-        job->exitCode = 1;
+        LeaveCriticalSection(&g_stateLock);
+        std::cout << "PID " << pid << " is not a tracked background process.\n";
+        return;
     }
+
+    if (job->status == JobStatus::Exited || !job->handlesOpen)
+    {
+        LeaveCriticalSection(&g_stateLock);
+        std::cout << "PID " << pid << " has already exited.\n";
+        return;
+    }
+
+    if (!TerminateProcess(job->processInfo.hProcess, 1))
+    {
+        DWORD error = GetLastError();
+        LeaveCriticalSection(&g_stateLock);
+        std::cout << "Cannot terminate PID " << pid << ". Windows error: " << error << "\n";
+        return;
+    }
+
+    WaitForSingleObject(job->processInfo.hProcess, 1000);
+    job->status = JobStatus::Exited;
+    job->exitCode = 1;
+    closeJobHandles(*job);
     LeaveCriticalSection(&g_stateLock);
 
     std::cout << "PID " << pid << " was terminated.\n";
@@ -666,6 +753,25 @@ void stopOrResumeProcessCommand(const std::vector<std::string> &args, bool suspe
         return;
     }
 
+    refreshBackgroundJobs();
+
+    EnterCriticalSection(&g_stateLock);
+    BackgroundJob *job = findJobByPid(pid);
+    if (job == nullptr)
+    {
+        LeaveCriticalSection(&g_stateLock);
+        std::cout << "PID " << pid << " is not a tracked background process.\n";
+        return;
+    }
+
+    if (job->status == JobStatus::Exited || !job->handlesOpen)
+    {
+        LeaveCriticalSection(&g_stateLock);
+        std::cout << "PID " << pid << " has already exited.\n";
+        return;
+    }
+    LeaveCriticalSection(&g_stateLock);
+
     if (!changeThreadState(pid, suspend))
     {
         std::cout << "No thread was changed for PID " << pid << ". Check the PID and permissions.\n";
@@ -673,10 +779,10 @@ void stopOrResumeProcessCommand(const std::vector<std::string> &args, bool suspe
     }
 
     EnterCriticalSection(&g_stateLock);
-    BackgroundJob *job = findJobByPid(pid);
-    if (job != nullptr && job->status != JobStatus::Exited)
+    BackgroundJob *updatedJob = findJobByPid(pid);
+    if (updatedJob != nullptr && updatedJob->status != JobStatus::Exited)
     {
-        job->status = suspend ? JobStatus::Suspended : JobStatus::Running;
+        updatedJob->status = suspend ? JobStatus::Suspended : JobStatus::Running;
     }
     LeaveCriticalSection(&g_stateLock);
 
@@ -766,13 +872,13 @@ void printDateTime(bool dateOnly)
 
     if (dateOnly)
     {
-        std::cout << std::setfill('0') << std::setw(2) << now.wDay << "/"
+        std::cout << std::right << std::setfill('0') << std::setw(2) << now.wDay << "/"
                   << std::setw(2) << now.wMonth << "/"
                   << std::setw(4) << now.wYear << std::setfill(' ') << "\n";
         return;
     }
 
-    std::cout << std::setfill('0') << std::setw(2) << now.wHour << ":"
+    std::cout << std::right << std::setfill('0') << std::setw(2) << now.wHour << ":"
               << std::setw(2) << now.wMinute << ":"
               << std::setw(2) << now.wSecond << std::setfill(' ') << "\n";
 }
@@ -897,7 +1003,7 @@ void printHelp()
 {
     std::cout << "WELCOME TO myShell\n\n"
               << "Run a program normally:      notepad\n"
-              << "Run in background:          ping -n 10 127.0.0.1 > nul &\n"
+              << "Run in background:          build\\ascii_worker.exe 30 &\n"
               << "Run a Windows batch file:   scripts\\hello.bat\n"
               << "Run a shell script file:    run scripts\\demo.tsh\n\n"
               << "Required process commands:\n"
@@ -970,7 +1076,6 @@ void runScript(const std::vector<std::string> &args)
 
         std::cout << "[script:" << lineNumber << "] " << cleaned << "\n";
         std::cout.flush();
-        g_history.push_back(cleaned);
         executeLine(cleaned, true);
     }
 }
@@ -1088,7 +1193,14 @@ bool runBuiltin(const ParsedCommand &command)
         }
         else
         {
-            Sleep(static_cast<DWORD>(std::stoul(args[0])));
+            unsigned long milliseconds = 0;
+            if (!parseUnsignedLongStrict(args[0], milliseconds) || milliseconds > std::numeric_limits<DWORD>::max())
+            {
+                std::cout << "Error: Invalid milliseconds value.\n";
+                return true;
+            }
+
+            Sleep(static_cast<DWORD>(milliseconds));
         }
     }
     else if (name == "run")

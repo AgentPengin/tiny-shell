@@ -8,7 +8,7 @@ path
 which cmd
 cmd /C echo Hello from an external command
 scripts\hello.bat
-ping -n 2 127.0.0.1 > nul &
+build\ascii_worker.exe 5 &
 list
 sleep 2500
 list

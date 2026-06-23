@@ -45,7 +45,7 @@ help
 date
 time
 dir
-ping -n 5 127.0.0.1 > nul &
+build\ascii_worker.exe 30 &
 list
 stop <pid>
 resume <pid>
@@ -59,3 +59,5 @@ exit
 
 - `docs/bao_cao_tiny_shell.md`: project report in Vietnamese.
 - `docs/huong_dan_chi_tiet_cho_nguoi_moi.md`: beginner guide explaining system logic, Windows APIs, and source code.
+- `docs/phan_tich_sau_analyze_va_de_xuat.md`: post-analysis technical fixes and future enhancement suggestions.
+- `docs/kich_ban_demo_cho_thay.md`: guided teacher demo script with explanations.

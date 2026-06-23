@@ -11,12 +11,15 @@ if(NOT WIN32)
 endif()
 
 add_executable(myShell src/main.cpp)
+add_executable(ascii_worker src/ascii_worker.cpp)
 
 if(MINGW)
     target_compile_options(myShell PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(ascii_worker PRIVATE -Wall -Wextra -pedantic)
 elseif(MSVC)
     target_compile_options(myShell PRIVATE /W4 /permissive-)
+    target_compile_options(ascii_worker PRIVATE /W4 /permissive-)
 endif()
 
-install(TARGETS myShell RUNTIME DESTINATION .)
+install(TARGETS myShell ascii_worker RUNTIME DESTINATION .)
 install(DIRECTORY scripts/ DESTINATION scripts FILES_MATCHING PATTERN "*")

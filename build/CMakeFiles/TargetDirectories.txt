@@ -1,4 +1,5 @@
 D:/Hust/Operating system/IT3070/Tiny Shell/build/CMakeFiles/myShell.dir
+D:/Hust/Operating system/IT3070/Tiny Shell/build/CMakeFiles/ascii_worker.dir
 D:/Hust/Operating system/IT3070/Tiny Shell/build/CMakeFiles/edit_cache.dir
 D:/Hust/Operating system/IT3070/Tiny Shell/build/CMakeFiles/rebuild_cache.dir
 D:/Hust/Operating system/IT3070/Tiny Shell/build/CMakeFiles/list_install_components.dir

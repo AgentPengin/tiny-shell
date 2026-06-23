@@ -63,10 +63,12 @@ CMAKE_BINARY_DIR = "D:\Hust\Operating system\IT3070\Tiny Shell\build"
 
 # The main recursive "all" target.
 all: CMakeFiles/myShell.dir/all
+all: CMakeFiles/ascii_worker.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/myShell.dir/codegen
+codegen: CMakeFiles/ascii_worker.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -75,6 +77,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/myShell.dir/clean
+clean: CMakeFiles/ascii_worker.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -84,7 +87,7 @@ clean: CMakeFiles/myShell.dir/clean
 CMakeFiles/myShell.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\myShell.dir\build.make CMakeFiles/myShell.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\myShell.dir\build.make CMakeFiles/myShell.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=1,2 "Built target myShell"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=3,4 "Built target myShell"
 .PHONY : CMakeFiles/myShell.dir/all
 
 # Build rule for subdir invocation for target.
@@ -101,13 +104,45 @@ myShell: CMakeFiles/myShell.dir/rule
 # codegen rule for target.
 CMakeFiles/myShell.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\myShell.dir\build.make CMakeFiles/myShell.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=1,2 "Finished codegen for target myShell"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=3,4 "Finished codegen for target myShell"
 .PHONY : CMakeFiles/myShell.dir/codegen
 
 # clean rule for target.
 CMakeFiles/myShell.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\myShell.dir\build.make CMakeFiles/myShell.dir/clean
 .PHONY : CMakeFiles/myShell.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/ascii_worker.dir
+
+# All Build rule for target.
+CMakeFiles/ascii_worker.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=1,2 "Built target ascii_worker"
+.PHONY : CMakeFiles/ascii_worker.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/ascii_worker.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start "D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/ascii_worker.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start "D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" 0
+.PHONY : CMakeFiles/ascii_worker.dir/rule
+
+# Convenience name for target.
+ascii_worker: CMakeFiles/ascii_worker.dir/rule
+.PHONY : ascii_worker
+
+# codegen rule for target.
+CMakeFiles/ascii_worker.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="D:\Hust\Operating system\IT3070\Tiny Shell\build\CMakeFiles" --progress-num=1,2 "Finished codegen for target ascii_worker"
+.PHONY : CMakeFiles/ascii_worker.dir/codegen
+
+# clean rule for target.
+CMakeFiles/ascii_worker.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\ascii_worker.dir\build.make CMakeFiles/ascii_worker.dir/clean
+.PHONY : CMakeFiles/ascii_worker.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

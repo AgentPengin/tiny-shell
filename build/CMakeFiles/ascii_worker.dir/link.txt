@@ -1,0 +1,3 @@
+"C:\Program Files\CodeBlocks\MinGW\bin\cmake.exe" -E rm -f CMakeFiles\ascii_worker.dir/objects.a
+C:\PROGRA~1\CODEBL~1\MinGW\bin\ar.exe qc CMakeFiles\ascii_worker.dir/objects.a @CMakeFiles\ascii_worker.dir\objects1.rsp
+C:\PROGRA~1\CODEBL~1\MinGW\bin\C__~1.EXE -Wl,--whole-archive CMakeFiles\ascii_worker.dir/objects.a -Wl,--no-whole-archive -o ascii_worker.exe -Wl,--out-implib,libascii_worker.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\ascii_worker.dir\linkLibs.rsp

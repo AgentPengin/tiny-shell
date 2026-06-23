@@ -51,4 +51,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/myShell.dir/DependInfo.cmake"
+  "CMakeFiles/ascii_worker.dir/DependInfo.cmake"
   )

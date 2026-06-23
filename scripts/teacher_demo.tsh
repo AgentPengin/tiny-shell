@@ -1,0 +1,21 @@
+# Teacher demo script for myShell
+help
+date
+time
+pwd
+dir .
+setenv COURSE IT3070
+env COURSE
+unsetenv COURSE
+env COURSE
+which cmd
+which scripts\hello
+scripts\hello
+cmd /C echo Foreground external command OK
+build\ascii_worker.exe 5 &
+list
+sleep 2500
+list
+reap
+list
+history
