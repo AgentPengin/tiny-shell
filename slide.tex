@@ -1,0 +1,130 @@
+% Bien dich duoc bang pdfLaTeX tren Overleaf.
+\documentclass[aspectratio=169,10pt]{beamer}
+
+\usetheme{Madrid}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title[Tiny Shell]{Tiny Shell trên Windows}
+\subtitle{Project môn Nguyên lý hệ điều hành}
+\author{Nhóm thực hiện}
+\institute{IT3070}
+\date{Tháng 6 năm 2026}
+
+\begin{document}
+
+\begin{frame}{Giới thiệu project}
+  \begin{block}{Mục tiêu}
+    Xây dựng một shell tối giản trên Windows để minh họa các thao tác cơ bản của hệ điều hành đối với tiến trình.
+  \end{block}
+
+  \begin{itemize}
+    \item Tên chương trình: \code{myShell}.
+    \item Ngôn ngữ: C++17; hệ build: CMake.
+    \item Nền tảng: Windows 10/11.
+    \item API chính: Windows Process API, ToolHelp API, Console Control Handler và Environment API.
+    \item Phạm vi: đọc lệnh, phân tích lệnh, tạo tiến trình con và quản lý tiến trình nền.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Nhóm thực hiện}
+  \begin{table}
+    \large
+    \begin{tabular}{@{}ll@{}}
+      \toprule
+      Họ và tên & MSSV \\
+      \midrule
+      Nguyễn Nhật Minh & 202416291 \\
+      Bùi Quang Phúc & 202400067 \\
+      Nguyễn Công Hiếu {\color{blue}(C)} & 202416202 \\
+      Phùng Danh Chí Vĩ & 202416398 \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+\begin{frame}{Tính năng chính}
+  \begin{table}
+    \small
+    \begin{tabularx}{\textwidth}{@{}lY@{}}
+      \toprule
+      Nhóm chức năng & Nội dung kỹ thuật \\
+      \midrule
+      Command parsing & Phân tích command line thành tokens, xử lý dấu nháy kép và nhận diện background operator \code{&}. \\
+      Process creation & Tạo child process từ external command bằng Windows API \code{CreateProcessA()}. \\
+      Foreground execution & Với foreground process, shell gọi \code{WaitForSingleObject()} và ghi nhận exit code sau khi process kết thúc. \\
+      Background execution & Với command có \code{&}, shell không wait mà lưu process vào job table và trả prompt cho user. \\
+      Job control & Theo dõi PID, \code{PROCESS_INFORMATION}, status và exit code; hỗ trợ \code{list}, \code{kill}, \code{stop}, \code{resume}, \code{reap}. \\
+      Script và batch support & Chạy script \code{.tsh}; chuyển \code{.bat}/\code{.cmd} qua \code{cmd.exe /C} theo cơ chế của Windows. \\
+      \bottomrule
+    \end{tabularx}
+  \end{table}
+\end{frame}
+
+\begin{frame}{Các lệnh chính}
+  \begin{table}
+    \small
+    \begin{tabularx}{\textwidth}{@{}lY@{}}
+      \toprule
+      Lệnh & Chức năng \\
+      \midrule
+      \code{help} & Hiển thị danh sách lệnh được hỗ trợ. \\
+      \code{exit} & Thoát shell và dọn các tiến trình nền còn được theo dõi. \\
+      \code{list} hoặc \code{jobs} & Liệt kê PID, trạng thái và command của job nền. \\
+      \code{kill <pid>} & Kết thúc một tiến trình nền đang được shell quản lý. \\
+      \code{stop <pid>} & Tạm dừng các thread của tiến trình nền. \\
+      \code{resume <pid>} & Tiếp tục các thread đã bị tạm dừng. \\
+      \code{reap} & Xóa các job đã kết thúc khỏi bảng theo dõi. \\
+      \code{date}, \code{time}, \code{dir} & Cung cấp một số tiện ích hệ thống cơ bản. \\
+      \bottomrule
+    \end{tabularx}
+  \end{table}
+\end{frame}
+
+\begin{frame}{Cơ chế thực thi}
+  \begin{itemize}
+    \item Shell hoạt động theo chu trình: đọc lệnh, phân tích cú pháp, phân loại lệnh, sau đó thực thi.
+    \item Lệnh built-in được xử lý trực tiếp trong tiến trình \code{myShell}.
+    \item Lệnh bên ngoài được tạo thành tiến trình con bằng \code{CreateProcessA()}.
+    \item Với foreground process, shell lưu tiến trình hiện tại và chờ đến khi tiến trình kết thúc.
+    \item Với background process, shell lưu thông tin vào bảng job và tiếp tục nhận lệnh mới.
+    \item Ctrl+C được xử lý bằng \code{SetConsoleCtrlHandler()} để hủy foreground process nhưng không đóng shell.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Chạy demo}
+\end{frame}
+
+{
+\usebackgroundtemplate{\color{blue!4}\rule{\paperwidth}{\paperheight}}
+\begin{frame}[plain]
+  \centering
+  \vfill
+
+  {\color{blue!65!black}\Huge Cảm ơn thầy và các bạn}
+
+  \vspace{3mm}
+  {\color{blue!65!black}\Huge đã lắng nghe}
+
+  \vspace{8mm}
+  {\color{blue!45!black}\rule{0.56\textwidth}{0.5pt}}
+
+  \vspace{8mm}
+  {\LARGE Câu hỏi và thảo luận}
+
+  \vfill
+  {\small Tiny Shell trên Windows -- IT3070}
+\end{frame}
+}
+
+\end{document}
